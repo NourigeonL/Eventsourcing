@@ -1,8 +1,17 @@
-import unittest
+import pytest
 from unittest import mock
 from eventsourcing.data import to_dict, Data
 from dataclasses import dataclass
 
+
+def test_raise_error_if_input_is_not_dataclass_nor_a_dictionnary():
+    """
+    Test that to_dict raises TypeError when the input is neither a dataclass nor a dictionary.
+    """
+    val = "Definitely not a dataclass"
+    
+    with pytest.raises(TypeError):
+        to_dict(val)
 
 def test_convert_simple_dataclass_to_dict():
     """
