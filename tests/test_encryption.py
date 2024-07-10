@@ -268,7 +268,8 @@ class EncryptionToDictTest(unittest.TestCase):
         assert my_dict["id"] == "dfs456sdf"
         assert isinstance(my_dict["val_one"], str)
         assert my_dict["val_one"] != "one"
-        assert str(f.decrypt(my_dict["val_one"]), encoding='utf-8') == "one"
+        assert my_dict["val_one"].find("encrypted_") == 0
+        assert str(f.decrypt(my_dict["val_one"].removeprefix("encrypted_")), encoding='utf-8') == "one"
         assert my_dict["val_two"] == 2
         assert my_dict["val_three"] == 3.3
 
@@ -294,16 +295,15 @@ class EncryptionToDictTest(unittest.TestCase):
         # Verify that all specified members are encrypted
         assert my_dict["id"] == "dfs456sdf"
         assert isinstance(my_dict["val_one"], str)
+        assert my_dict["val_one"].find("encrypted_") == 0
         assert my_dict["val_one"] != "one"
-        assert str(f.decrypt(my_dict["val_one"]), encoding='utf-8') == "one"
+        assert str(f.decrypt(my_dict["val_one"].removeprefix("encrypted_")), encoding='utf-8') == "one"
         assert isinstance(my_dict["val_two"], str)
-        assert my_dict["val_two"] != "2"
-        assert my_dict["val_two"] != 2
-        assert int(str(f.decrypt(my_dict["val_two"]), encoding='utf-8')) == 2
+        assert my_dict["val_two"].find("encrypted_") == 0
+        assert int(str(f.decrypt(my_dict["val_two"].removeprefix("encrypted_")), encoding='utf-8')) == 2
         assert isinstance(my_dict["val_three"], str)
-        assert my_dict["val_three"] != "3.3"
-        assert my_dict["val_three"] != 3.3
-        assert float(str(f.decrypt(my_dict["val_three"]), encoding='utf-8')) == 3.3
+        assert my_dict["val_three"].find("encrypted_") == 0
+        assert float(str(f.decrypt(my_dict["val_three"].removeprefix("encrypted_")), encoding='utf-8')) == 3.3
 
     def test_nested_encrypted_class(self):
         """
@@ -335,13 +335,15 @@ class EncryptionToDictTest(unittest.TestCase):
         # Verify that the nested encrypted classes are correctly handled
         assert my_dict["id"] == nester_id
         assert my_dict["val_one"] == my_obj.val_one
-        assert int(str(Fernet(nester_key).decrypt(my_dict["val_two"]), encoding='utf-8')) == my_obj.val_two
+        assert int(str(Fernet(nester_key).decrypt(my_dict["val_two"].removeprefix("encrypted_")), encoding='utf-8')) == my_obj.val_two
         assert isinstance(my_dict["nested"], dict)
         nested_dict = my_dict["nested"]
         assert nested_dict["id"] == nested_id
-        assert str(Fernet(nested_key).decrypt(nested_dict["val_one"]), encoding='utf-8') == my_obj.nested.val_one
+        assert isinstance(nested_dict["val_one"], str)
+        assert str(Fernet(nested_key).decrypt(nested_dict["val_one"].removeprefix("encrypted_")), encoding='utf-8') == my_obj.nested.val_one
         assert nested_dict["val_two"] == my_obj.nested.val_two
-        assert float(str(Fernet(nested_key).decrypt(nested_dict["val_three"]), encoding='utf-8')) == my_obj.nested.val_three
+        assert isinstance(nested_dict["val_three"], str)
+        assert float(str(Fernet(nested_key).decrypt(nested_dict["val_three"].removeprefix("encrypted_")), encoding='utf-8')) == my_obj.nested.val_three
 
 class EncryptionFromDictTest(unittest.TestCase):
     """
@@ -395,9 +397,9 @@ class EncryptionFromDictTest(unittest.TestCase):
         # Create a dictionary with encrypted values
         my_dict = {
             "id":id, 
-            "val_one":Fernet(key).encrypt(bytes(str("one"), encoding='utf-8')), 
+            "val_one":"encrypted_" + Fernet(key).encrypt(bytes(str("one"), encoding='utf-8')).decode(), 
             "val_two":2, 
-            "val_three":Fernet(key).encrypt(bytes(str(3.3), encoding='utf-8'))
+            "val_three":"encrypted_" + Fernet(key).encrypt(bytes(str(3.3), encoding='utf-8')).decode()
             }
 
         my_obj = CorrectClass.from_dict(my_dict)
@@ -439,12 +441,12 @@ class EncryptionFromDictTest(unittest.TestCase):
         my_dict = {
             "id":nester_id, 
             "val_one":"one one", 
-            "val_two":Fernet(nester_key).encrypt(bytes(str(22), encoding='utf-8')), 
+            "val_two":"encrypted_" + Fernet(nester_key).encrypt(bytes(str(22), encoding='utf-8')).decode(), 
             "nested":{
                 "id":nested_id, 
-                "val_one":Fernet(nested_key).encrypt(bytes(str("one"), encoding='utf-8')), 
+                "val_one":"encrypted_" + Fernet(nested_key).encrypt(bytes(str("one"), encoding='utf-8')).decode(), 
                 "val_two":2, 
-                "val_three":Fernet(nested_key).encrypt(bytes(str(3.3), encoding='utf-8'))
+                "val_three":"encrypted_" + Fernet(nested_key).encrypt(bytes(str(3.3), encoding='utf-8')).decode()
                 }
             }
 

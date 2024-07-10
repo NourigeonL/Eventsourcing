@@ -79,7 +79,7 @@ def encrypted(subject_id: str, encrypted_members: List[str]) -> Callable:
             fernet = Fernet(encryption_key)
 
             for member_name in encrypted_members:
-                res[member_name] = fernet.encrypt(str(res[member_name]).encode('utf-8')).decode()
+                res[member_name] = "encrypted_" + fernet.encrypt(str(res[member_name]).encode('utf-8')).decode()
             return res
 
         cls.to_dict = new_to_dict
@@ -98,7 +98,7 @@ def encrypted(subject_id: str, encrypted_members: List[str]) -> Callable:
             new_dict = deepcopy(dict_values)
             for member in encrypted_members:
                 field_type = cls.__dict__["__dataclass_fields__"][member].type
-                decrypted_value = fernet.decrypt(dict_values[member]).decode('utf-8')
+                decrypted_value = fernet.decrypt(str(dict_values[member]).removeprefix("encrypted_")).decode('utf-8')
                 new_dict[member] = field_type(decrypted_value)
 
             return old_from_dict(new_dict)
