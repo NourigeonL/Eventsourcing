@@ -79,7 +79,7 @@ def encrypted(subject_id: str, encrypted_members: List[str]) -> Callable:
             fernet = Fernet(encryption_key)
 
             for member_name in encrypted_members:
-                res[member_name] = fernet.encrypt(str(res[member_name]).encode('utf-8'))
+                res[member_name] = fernet.encrypt(str(res[member_name]).encode('utf-8')).decode()
             return res
 
         cls.to_dict = new_to_dict

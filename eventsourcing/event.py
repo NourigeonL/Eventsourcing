@@ -4,7 +4,6 @@ from .encryption import Data
 
 @dataclass
 class IEvent(Data, metaclass=abc.ABCMeta):
-    #version : int | None
 
     @property
     @abc.abstractmethod

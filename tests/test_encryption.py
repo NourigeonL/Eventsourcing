@@ -266,7 +266,8 @@ class EncryptionToDictTest(unittest.TestCase):
 
         # Verify that the specified member is encrypted
         assert my_dict["id"] == "dfs456sdf"
-        assert isinstance(my_dict["val_one"], bytes)
+        assert isinstance(my_dict["val_one"], str)
+        assert my_dict["val_one"] != "one"
         assert str(f.decrypt(my_dict["val_one"]), encoding='utf-8') == "one"
         assert my_dict["val_two"] == 2
         assert my_dict["val_three"] == 3.3
@@ -292,11 +293,16 @@ class EncryptionToDictTest(unittest.TestCase):
 
         # Verify that all specified members are encrypted
         assert my_dict["id"] == "dfs456sdf"
-        assert isinstance(my_dict["val_one"], bytes)
+        assert isinstance(my_dict["val_one"], str)
+        assert my_dict["val_one"] != "one"
         assert str(f.decrypt(my_dict["val_one"]), encoding='utf-8') == "one"
-        assert isinstance(my_dict["val_two"], bytes)
+        assert isinstance(my_dict["val_two"], str)
+        assert my_dict["val_two"] != "2"
+        assert my_dict["val_two"] != 2
         assert int(str(f.decrypt(my_dict["val_two"]), encoding='utf-8')) == 2
-        assert isinstance(my_dict["val_three"], bytes)
+        assert isinstance(my_dict["val_three"], str)
+        assert my_dict["val_three"] != "3.3"
+        assert my_dict["val_three"] != 3.3
         assert float(str(f.decrypt(my_dict["val_three"]), encoding='utf-8')) == 3.3
 
     def test_nested_encrypted_class(self):
