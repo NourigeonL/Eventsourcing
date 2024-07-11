@@ -49,10 +49,12 @@ class InMemEventStore(IEventStore):
     async def save_events(self, aggregate_id: str, events: list[IEvent], expected_version: int) -> None:
         event_descriptors = self.current.get(aggregate_id)
         if not event_descriptors:
+            if expected_version != -1:
+                raise ConcurrencyError()
             event_descriptors = []
             self.current[aggregate_id] = event_descriptors
 
-        elif event_descriptors[len(event_descriptors)-1].version != expected_version and expected_version != -1:
+        elif event_descriptors[len(event_descriptors)-1].version != expected_version:
             raise ConcurrencyError()
 
         i = expected_version
@@ -61,8 +63,8 @@ class InMemEventStore(IEventStore):
             i += 1
             event_descriptors.append(EventDescriptor(aggregate_id, event.type,json.dumps(event.to_dict()), i))
 
-    async def get_events_for_aggregate(self, aggregate_id: str) -> list[IEvent] | None:
+    async def get_events_for_aggregate(self, aggregate_id: str) -> list[IEvent]:
         event_descriptors = self.current.get(aggregate_id)
         if event_descriptors is None:
-            return None
+            return []
         return [get_event_class(desc.event_type).from_dict(json.loads(desc.event_data)) for desc in event_descriptors]
