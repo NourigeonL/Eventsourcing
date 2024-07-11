@@ -1,8 +1,7 @@
 import json
 from eventsourcing.event import IEvent
 from eventsourcing.exceptions import ConcurrencyError
-from eventsourcing.event_stores import IEventStore
-from .events import EVENT_MAP
+from eventsourcing.event_stores import IEventStore, get_event_class
 
 class EventDescriptor:
     def __init__(self, id : str, event_type: str, event_data : str, version : int) -> None:
@@ -47,4 +46,4 @@ class InMemEventStore(IEventStore):
         event_descriptors = self.current.get(aggregate_id)
         if event_descriptors is None:
             return None
-        return [EVENT_MAP[desc.event_type].from_dict(json.loads(desc.event_data)) for desc in event_descriptors]
+        return [get_event_class(desc.event_type).from_dict(json.loads(desc.event_data)) for desc in event_descriptors]
