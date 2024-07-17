@@ -1,6 +1,7 @@
 from unittest import mock
 from eventsourcing.data import from_dict, Data
 from dataclasses import dataclass
+import pytest
 
 def test_convert_to_dict():
     """
@@ -184,3 +185,53 @@ def test_convert_to_dataclass_with_list():
     assert len(res.lst) == 2
     assert res.lst[0] == "three"
     assert res.lst[1] == "four"
+
+def test_convert_to_dataclass_with_dict():
+    """
+    Test conversion of a dictionary to a dataclass with a dictionary.
+    Verifies that from_dict can handle dataclasses containing dictionary attributes.
+    """
+    @dataclass
+    class ChildDataclass(Data):
+        value : int
+
+    @dataclass
+    class MotherDataclass(Data):
+        first_value : int
+        second_value : str
+        childs : dict[str, ChildDataclass]
+
+    dict_values = {"first_value" : 1, "second_value" : "two", "childs":{"one":{"value": 1}, "two":{"value":2}}}
+    res = from_dict(MotherDataclass, dict_values)
+
+    # Check if the dataclass is correctly created with the list attribute
+    assert isinstance(res, MotherDataclass)
+    assert res.first_value == 1
+    assert res.second_value == "two"
+    assert isinstance(res.childs, dict)
+    assert isinstance(res.childs["one"], ChildDataclass)
+    assert isinstance(res.childs["two"], ChildDataclass)
+    assert res.childs["one"].value == 1
+    assert res.childs["two"].value == 2
+
+def test_should_skip_extra_member_of_Data_type_class():
+    
+    @dataclass
+    class SimpleDataclass(Data):
+        value_one : int
+
+    dict_values = {"value_one":1, "extra_value":2}
+    res = SimpleDataclass.from_dict(dict_values)
+    assert isinstance(res, SimpleDataclass)
+    assert res.value_one == 1
+
+def test_should_skip_extra_member_of_dataclass():
+    
+    @dataclass
+    class SimpleDataclass:
+        value_one : int
+
+    dict_values = {"value_one":1, "extra_value":2}
+    res = from_dict(SimpleDataclass,dict_values)
+    assert isinstance(res, SimpleDataclass)
+    assert res.value_one == 1

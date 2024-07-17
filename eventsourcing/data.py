@@ -60,7 +60,7 @@ def to_dict(obj : T|dict[str, any]) -> dict | object:
             res[key] = value
     return res
 
-def from_dict(cls : type[T], values : any) -> T:
+def from_dict(cls : type, values : any) -> object:
     """
     Convert a dictionary to an instance of the specified class.
 
@@ -76,6 +76,15 @@ def from_dict(cls : type[T], values : any) -> T:
     new_dict = {}
     args = get_args(cls)
     origin = get_origin(cls)
+
+    if is_dataclass(cls) or issubclass(cls,Data):
+        members = [key for key, values in cls.__annotations__.items()]
+        tmp = {}
+        for key, value in values.items():
+            if key in members:
+                tmp[key] = value
+        values = tmp
+
     for key, value in values.items():
         if isinstance(value, dict):
             sub_cls = __get_subclass(cls, args, origin, key, value)
@@ -92,6 +101,7 @@ def from_dict(cls : type[T], values : any) -> T:
             new_dict[key] = new_list
         else:
             new_dict[key] = value
+
     return cls(**new_dict)
 
 
