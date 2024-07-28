@@ -40,6 +40,9 @@ class EventDescriptor:
     @property
     def id(self) -> str:
         return self.__id
+    
+    def __repr__(self) -> str:
+        return f"(event:{self.event_type} - version:{self.version})"
 
 class InMemEventStore(IEventStore):
 
